@@ -17,10 +17,11 @@ project-root/
 │   ├── db/
 │   ├── file-structure.md
 │   ├── frontend/
-│   ├── info/
+│   ├── specs/
 │   └── tests/
 ├── .gitignore
 ├── changelog.md
 ├── contributing.md
 └── readme.md
-`
+`
+

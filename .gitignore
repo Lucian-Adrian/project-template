@@ -232,7 +232,7 @@
 
 # # Git
 # .git
-# .gitignore
+ .gitignore
 
 # # Project specific
 # docs/

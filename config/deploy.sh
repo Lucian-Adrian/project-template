@@ -10,12 +10,8 @@ echo "Starting project structure deployment..."
 create_dir() {
     local dir=$1
     if [ -d "$dir" ]; then
-        read -p "Directory '$dir' already exists. Overwrite? (y/N): " response
-        if [[ ! "$response" =~ ^[Yy]$ ]]; then
-            echo "Skipping '$dir'"
-            return
-        fi
-        rm -rf "$dir"
+        echo "Using existing directory: $dir"
+        return
     fi
     mkdir -p "$dir"
     echo "Created directory: $dir"
@@ -26,8 +22,8 @@ create_file() {
     local file=$1
     local content=$2
     if [ -f "$file" ]; then
-        read -p "File '$file' already exists. Overwrite? (y/N): " response
-        if [[ ! "$response" =~ ^[Yy]$ ]]; then
+        if ! read -r -p "File '$file' already exists. Overwrite? (y/N): " response ||
+            [[ ! "$response" =~ ^[Yy]$ ]]; then
             echo "Skipping '$file'"
             return
         fi

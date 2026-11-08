@@ -60,6 +60,31 @@ class DeployTests(unittest.TestCase):
         for sentinel in sentinels:
             self.assertEqual(sentinel.read_text(encoding="utf-8"), "keep\n")
 
+    def test_generated_gitignore_rules(self):
+        self.run_deploy()
+        subprocess.run(
+            ["git", "init", "--quiet"], cwd=self.project,
+            check=True, capture_output=True, timeout=10,
+        )
+        cases = {
+            ".gitignore": False,
+            "docs/file-structure.md": False,
+            "docs/backend/guide.md": False,
+            "docs/_build/index.html": True,
+            "Example$py.class": True,
+            "Example.class": False,
+            "__pycache__/example.pyc": True,
+            ".env": True,
+        }
+        for name, ignored in cases.items():
+            with self.subTest(path=name):
+                result = subprocess.run(
+                    ["git", "-c", "core.excludesFile=", "check-ignore",
+                     "--no-index", "--quiet", "--", name],
+                    cwd=self.project, capture_output=True, timeout=10,
+                )
+                self.assertEqual(result.returncode, 0 if ignored else 1)
+
     def test_file_overwrite_choices_are_independent(self):
         skipped = self.write_existing(FILES[0], "keep instructions\n")
         replaced = self.write_existing(FILES[1], "old structure\n")

@@ -203,7 +203,7 @@ services:
 create_file ".gitignore" "# Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[cod]
-*$py.class
+*\$py.class
 
 # C extensions
 *.so
@@ -433,11 +433,7 @@ temp/
 .dockerignore
 
 # Git
-.git
-.gitignore
-
-# Project specific
-docs/"
+.git"
 
 echo "Project structure deployed successfully!"
 echo "Next steps:"

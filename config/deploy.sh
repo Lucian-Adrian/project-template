@@ -6,9 +6,23 @@ set -e
 
 echo "Starting project structure deployment..."
 
+# Reject symlinks in destinations and their parents, including dangling links.
+check_destination() {
+    local path=$1
+    while true; do
+        if [ -L "$path" ]; then
+            echo "Refusing symlink destination: $path" >&2
+            exit 1
+        fi
+        [[ "$path" == */* ]] || break
+        path=${path%/*}
+    done
+}
+
 # Function to create directory
 create_dir() {
     local dir=$1
+    check_destination "$dir"
     if [ -d "$dir" ]; then
         echo "Using existing directory: $dir"
         return
@@ -21,6 +35,7 @@ create_dir() {
 create_file() {
     local file=$1
     local content=$2
+    check_destination "$file"
     if [ -f "$file" ]; then
         if ! read -r -p "File '$file' already exists. Overwrite? (y/N): " response ||
             [[ ! "$response" =~ ^[Yy]$ ]]; then

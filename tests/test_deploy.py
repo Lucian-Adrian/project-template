@@ -24,7 +24,7 @@ class DeployTests(unittest.TestCase):
         self.project = Path(temporary.name) / "project with spaces"
         self.project.mkdir()
 
-    def run_deploy(self, answers=""):
+    def run_deploy(self, answers="", expect_success=True):
         # The script deletes itself, so always execute a disposable copy.
         script = self.project / "deploy copy.sh"
         shutil.copyfile(SCRIPT, script)
@@ -32,9 +32,65 @@ class DeployTests(unittest.TestCase):
             ["bash", script.name], cwd=self.project, input=answers,
             text=True, capture_output=True, timeout=10,
         )
-        self.assertEqual(result.returncode, 0, "Scaffolder failed")
-        self.assertFalse(script.exists())
+        if expect_success:
+            self.assertEqual(result.returncode, 0, "Scaffolder failed")
+            self.assertFalse(script.exists())
+        else:
+            self.assertNotEqual(result.returncode, 0)
+            self.assertIn("Refusing symlink destination:", result.stderr)
+            self.assertTrue(script.exists())
         return result
+
+    def test_symlinked_files_preserve_external_sentinels(self):
+        root = self.project
+        sentinel = root.parent / "external.txt"
+        sentinel.write_text("keep external\n", encoding="utf-8")
+        for index, name in enumerate(FILES):
+            with self.subTest(path=name):
+                self.project = root / str(index)
+                self.project.mkdir()
+                target = self.project / name
+                target.parent.mkdir(parents=True, exist_ok=True)
+                target.symlink_to(sentinel)
+                self.run_deploy("y\n" * len(FILES), expect_success=False)
+                self.assertTrue(target.is_symlink())
+                self.assertEqual(sentinel.read_text(encoding="utf-8"),
+                                 "keep external\n")
+
+    def test_symlinked_directories_preserve_external_tree(self):
+        root = self.project
+        external = root.parent / "external"
+        external.mkdir()
+        contents = {Path(name).name: "keep external\n" for name in FILES}
+        for name, content in contents.items():
+            (external / name).write_text(content, encoding="utf-8")
+        for index, name in enumerate(DIRECTORIES):
+            with self.subTest(path=name):
+                self.project = root / str(index)
+                self.project.mkdir()
+                target = self.project / name
+                target.parent.mkdir(parents=True, exist_ok=True)
+                target.symlink_to(external, target_is_directory=True)
+                self.run_deploy("y\n" * len(FILES), expect_success=False)
+                self.assertTrue(target.is_symlink())
+                self.assertEqual(
+                    {path.name: path.read_text(encoding="utf-8")
+                     for path in external.iterdir()}, contents,
+                )
+
+    def test_dangling_symlinks_do_not_create_external_targets(self):
+        root = self.project
+        for index, name in enumerate(DIRECTORIES + FILES):
+            with self.subTest(path=name):
+                self.project = root / str(index)
+                self.project.mkdir()
+                external = root.parent / f"missing-{index}"
+                target = self.project / name
+                target.parent.mkdir(parents=True, exist_ok=True)
+                target.symlink_to(external)
+                self.run_deploy("y\n" * len(FILES), expect_success=False)
+                self.assertTrue(target.is_symlink())
+                self.assertFalse(external.exists())
 
     def write_existing(self, name, content):
         target = self.project / name

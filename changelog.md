@@ -22,3 +22,4 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Preserve existing directories when rerunning the Bash scaffolder and skip file overwrites on EOF.
 
 ### Security
+- Reject symlink destinations and parents in the Bash scaffolder before writing.

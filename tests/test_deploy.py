@@ -155,6 +155,17 @@ class DeployTests(unittest.TestCase):
         self.run_deploy("\n")
         self.assertEqual(target.read_text(encoding="utf-8"), "keep\n")
 
+    def test_unrecognized_answers_preserve_existing_file(self):
+        root = self.project
+        for index, answer in enumerate(("yes\n", "y extra\n", "true\n", "1\n")):
+            with self.subTest(answer=answer):
+                self.project = root / str(index)
+                self.project.mkdir()
+                target = self.write_existing(FILES[0], "keep\n")
+                self.run_deploy(answer)
+                self.assertEqual(target.read_text(encoding="utf-8"), "keep\n")
+                self.assertTrue((self.project / FILES[-1]).is_file())
+
     def test_eof_preserves_all_existing_files_and_creates_missing_files(self):
         targets = [self.write_existing(name, "keep\n") for name in FILES[:-1]]
         self.run_deploy()

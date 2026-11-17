@@ -15,7 +15,7 @@ A comprehensive GitHub repository template that deploys a complete project struc
    # For Linux/Mac (Bash)
    cp path/to/this/repo/config/deploy.sh ./new-project-folder
    cd new-project-folder
-   ./deploy.sh
+   bash deploy.sh
    ```
 3. **Done!** Your project structure is ready.
 

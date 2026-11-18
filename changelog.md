@@ -8,6 +8,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
+- Document the Bash scaffolder test command and requirements in the contribution guide.
 - Initial project structure
 - Basic documentation
 

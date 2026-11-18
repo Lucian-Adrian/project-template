@@ -17,6 +17,16 @@ Thank you for your interest in contributing! Please follow these guidelines:
 - Add tests for new features
 - Update documentation as needed
 
+## Running tests
+
+From the repository root, run:
+
+```bash
+python3 -m unittest discover -s tests -v
+```
+
+The tests require Python 3, Bash and Git, with no third-party Python packages. They run disposable copies of the Bash deploy script in temporary directories to check scaffolding, overwrite choices, symlink protection and generated ignore rules.
+
 ## Reporting Issues
 
 Please use the GitHub issue tracker to report bugs or request features.

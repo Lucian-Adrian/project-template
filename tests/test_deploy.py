@@ -177,3 +177,12 @@ class DeployTests(unittest.TestCase):
         target = self.write_existing(FILES[0], "keep\n")
         self.run_deploy("y")
         self.assertEqual(target.read_text(encoding="utf-8"), "keep\n")
+
+    def test_eof_after_approved_overwrite_preserves_remaining_files(self):
+        targets = [self.write_existing(name, "keep\n") for name in FILES]
+        self.run_deploy("y\n")
+        self.assertTrue(targets[0].read_text(encoding="utf-8").startswith(
+            "# Copilot Instructions\n"))
+        for target in targets[1:]:
+            with self.subTest(path=target.relative_to(self.project)):
+                self.assertEqual(target.read_text(encoding="utf-8"), "keep\n")

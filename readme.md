@@ -4,6 +4,8 @@ A comprehensive GitHub repository template that deploys a complete project struc
 
 ## 🚀 Quick Start
 
+Use a new, empty project folder. In PowerShell, approving a directory overwrite deletes that directory and all its contents; `-Force` does this without prompting. Back up existing work before running `deploy.ps1` in a populated folder.
+
 1. **Create a new folder** for your project
 2. **Copy the deploy script**:
    ```bash

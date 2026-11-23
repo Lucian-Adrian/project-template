@@ -106,6 +106,19 @@ class DeployTests(unittest.TestCase):
             self.assertTrue((self.project / name).is_file(), name)
             self.assertGreater((self.project / name).stat().st_size, 0, name)
 
+    def test_file_blocking_required_directory_is_preserved(self):
+        target = self.write_existing("docs", "keep existing file\n")
+        script = self.project / "deploy copy.sh"
+        shutil.copyfile(SCRIPT, script)
+        result = subprocess.run(
+            ["bash", script.name], cwd=self.project, input="",
+            text=True, capture_output=True, timeout=10,
+        )
+        self.assertNotEqual(result.returncode, 0)
+        self.assertEqual(target.read_text(encoding="utf-8"), "keep existing file\n")
+        self.assertTrue(script.is_file())
+        self.assertFalse((self.project / FILES[0]).exists())
+
     def test_rerun_preserves_nested_sentinels_when_accepting_overwrites(self):
         self.run_deploy()
         sentinels = [

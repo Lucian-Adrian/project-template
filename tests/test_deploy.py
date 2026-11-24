@@ -119,6 +119,28 @@ class DeployTests(unittest.TestCase):
         self.assertTrue(script.is_file())
         self.assertFalse((self.project / FILES[0]).exists())
 
+    def test_directory_blocking_generated_file_is_preserved(self):
+        root = self.project
+        for index, name in enumerate(FILES):
+            with self.subTest(path=name):
+                self.project = root / str(index)
+                self.project.mkdir()
+                target = self.project / name
+                target.mkdir(parents=True)
+                sentinel = target / "keep.txt"
+                sentinel.write_text("keep\n", encoding="utf-8")
+                script = self.project / "deploy copy.sh"
+                shutil.copyfile(SCRIPT, script)
+                result = subprocess.run(
+                    ["bash", script.name], cwd=self.project, input="",
+                    text=True, capture_output=True, timeout=10,
+                )
+                self.assertNotEqual(result.returncode, 0)
+                self.assertEqual(sentinel.read_text(encoding="utf-8"), "keep\n")
+                self.assertTrue(script.is_file())
+                self.assertNotIn("Project structure deployed successfully!",
+                                 result.stdout)
+
     def test_rerun_preserves_nested_sentinels_when_accepting_overwrites(self):
         self.run_deploy()
         sentinels = [

@@ -190,6 +190,14 @@ class DeployTests(unittest.TestCase):
         self.run_deploy("\n")
         self.assertEqual(target.read_text(encoding="utf-8"), "keep\n")
 
+    def test_empty_existing_files_are_preserved_by_default(self):
+        targets = [self.write_existing(name, "") for name in FILES]
+        self.run_deploy("\n" * len(FILES))
+        for target in targets:
+            with self.subTest(path=target.relative_to(self.project)):
+                self.assertTrue(target.is_file())
+                self.assertEqual(target.read_bytes(), b"")
+
     def test_unrecognized_answers_preserve_existing_file(self):
         root = self.project
         for index, answer in enumerate(("yes\n", "y extra\n", "true\n", "1\n")):

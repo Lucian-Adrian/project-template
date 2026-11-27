@@ -106,6 +106,26 @@ class DeployTests(unittest.TestCase):
             self.assertTrue((self.project / name).is_file(), name)
             self.assertGreater((self.project / name).stat().st_size, 0, name)
 
+    def test_absolute_script_path_scaffolds_working_directory(self):
+        script_directory = self.project.parent / "script folder"
+        script_directory.mkdir()
+        script = script_directory / "deploy copy.sh"
+        shutil.copyfile(SCRIPT, script)
+        sentinel = self.write_existing(script.name, "keep unrelated file\n")
+
+        result = subprocess.run(
+            ["bash", str(script)], cwd=self.project, input="",
+            text=True, capture_output=True, timeout=10,
+        )
+
+        self.assertEqual(result.returncode, 0, "Scaffolder failed")
+        self.assertFalse(script.exists())
+        self.assertEqual(sentinel.read_text(encoding="utf-8"),
+                         "keep unrelated file\n")
+        self.assertEqual(list(script_directory.iterdir()), [])
+        for name in FILES:
+            self.assertTrue((self.project / name).is_file(), name)
+
     def test_file_blocking_required_directory_is_preserved(self):
         target = self.write_existing("docs", "keep existing file\n")
         script = self.project / "deploy copy.sh"
